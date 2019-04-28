@@ -8,43 +8,38 @@ local log     = require "log"
 -- local limiter = require "software-ratecontrol"
 
 local DST_MAC   = "aa:aa:aa:aa:aa:aa"
-local SRC_IP1    = "50.1.1.2"
-local SRC_IP2    = "60.1.1.2"
-local DST_IP    = "10.1.1.2"
+local SRC_IP    = "20.1.1.2"
+local DST_IP    = "40.1.1.2"
 local SRC_PORT  = 36666
 local DST_PORT  = 6666
 local PKT_SIZE  = 60
 
-function master(txPort1, txPort2, rate)
-    if not txPort1 or not rate then
-        return print("usage: txPort1 txPort2 rate(Gbps)")
+function master(txPort, rate)
+    if not txPort or not rate then
+        return print("usage: txPort rate(Gbps)")
     end
-    txPort1 = txPort1 or 0
---    txPort2 = txPort2 or 1
+    txPort = txPort or 0
     rate = rate or 10
 
-    local txDev1 = device.config{port = txPort1, txQueues = 1, disableOffloads = true}
+    local txDev = device.config{port = txPort, txQueues = 1, disableOffloads = true}
     device.waitForLinks()
---    local txDev2 = device.config{port = txPort2, txQueues = 1, disableOffloads = true}
---    device.waitForLinks()
+    
 
-    stats.startStatsTask{txDevices = {txDev1}} --, txDev2}}
+    stats.startStatsTask{txDevices = {txDev}}
 
-    mg.startTask("loadSlave", txDev1:getTxQueue(0), txDev1, rate, SRC_IP1)
---    mg.startTask("loadSlave", txDev2:getTxQueue(0), txDev2, rate, SRC_IP2)
+    mg.startTask("loadSlave", txDev:getTxQueue(0), txDev, rate, SRC_IP)
     mg.waitForTasks()
 end
 
 
 function loadSlave(queue, txDev, rate, srcIP)
     local mem = memory.createMemPool(4096, function(buf)
-        buf:getUdpPacket():fill{
+        buf:getTestPacket():fill{
             ethSrc = txDev,
             ethDst = DST_MAC,
             ip4Src = srcIP,
             ip4Dst = DST_IP,
-            udpSrc = SRC_PORT,
-            udpDst = DST_PORT,
+            PKT_NUMBER = 25,
             pktLength = PKT_SIZE
         }
     end)
