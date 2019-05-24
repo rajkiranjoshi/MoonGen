@@ -7,7 +7,7 @@ local stats   = require "stats"
 local log     = require "log"
 -- local limiter = require "software-ratecontrol"
 
-local DST_MAC   = "bb:bb:bb:bb:bb:bb"
+local DST_MAC   = "b0:bb:bb:bb:bb:bf" -- special for linkfailure delay expt
 local SRC_IP    = "20.1.1.2"
 local dst_ip1   = "40.1.1.2"
 --local dst_ip2   = "30.1.1.2"
@@ -17,7 +17,7 @@ local PKT_SIZE  = 60
 
 function master(txPort1, rate1) -- , txPort2, rate2)
     if not txPort1 or not rate1 then -- or not txPort2 or not rate2 then
-        return print("usage: txPort1(normal) rate1 txPort2(backup) rate2")
+        return print("usage: txPort1(normal) rate1") --  txPort2(backup) rate2")
     end
 
     local txDev1 = device.config{port = txPort1, txQueues = 1, disableOffloads = true}
